@@ -13,12 +13,14 @@ public class BallStats : MonoBehaviour
     [SerializeField] Transform _basket;
     [SerializeField] private float initialAngle;
     [SerializeField] private float shootForce;
+
     private bool canShoot = true;
     private bool absScore = false;
-    private Vector3 startPos;
+    public Vector3 startPos;
     private int score = 0;
     [SerializeField] private TMP_Text _score;
-   
+    public float forcePower = 500;
+
     private void Start()
     {
         _rigidbody = GetComponent<Rigidbody>();
@@ -33,9 +35,11 @@ public class BallStats : MonoBehaviour
     {
         if (velocity != Vector3.zero)
         {
-            _rigidbody.AddForce(velocity * speed, ForceMode.Force);
-        }     
+            _rigidbody.AddForce(velocity * Time.deltaTime * speed, ForceMode.Force);
+
+        }
     }
+
     void OnMove(InputValue movementInput)
     {
         Vector2 input = movementInput.Get<Vector2>();
@@ -45,17 +49,25 @@ public class BallStats : MonoBehaviour
     void OnShoot(InputValue shootInput)
     {
         if (canShoot == true && absScore == false)
-        {         
+        {
             transform.LookAt(_basket);
-            _rigidbody.AddForce(transform.forward * shootForce, ForceMode.VelocityChange);
-            _rigidbody.AddForce(transform.up * shootForce, ForceMode.VelocityChange);
-            canShoot = false;   
+            _rigidbody.AddForce(Vector3.forward * shootForce, ForceMode.VelocityChange);
+            _rigidbody.AddForce(Vector3.up * shootForce, ForceMode.VelocityChange);
+            canShoot = false;
         }
-        
+
         if (absScore == true)
         {
             hesapla();
-        }  
+        }
+    }
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Ground"))
+        {
+            _rigidbody.velocity = _rigidbody.velocity/2.79f;
+            _rigidbody.AddForce(Vector3.up * forcePower, ForceMode.Force);
+        }
     }
     private void OnTriggerEnter(Collider other)
     {
@@ -66,7 +78,9 @@ public class BallStats : MonoBehaviour
         
         if (other.gameObject.CompareTag("Ground"))
         {
-            canShoot = true;            
+            
+            canShoot = true;
+            
         }
         if (other.gameObject.CompareTag("Reset"))
         {
